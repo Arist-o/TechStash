@@ -1,2 +1,67 @@
+# ========================
+# GLOBAL & OS (Системні)
+# ========================
+.DS_Store
+Thumbs.db
+*.log
+
+# ========================
+# IDE (Середовища розробки)
+# ========================
+# Ігноруємо налаштування JetBrains (PyCharm, WebStorm)
+.idea/
+# Ігноруємо налаштування VS Code
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ========================
+# BACKEND (Python / FastAPI)
+# ========================
+# Віртуальне оточення (найважливіше!)
+backend/venv/
+venv/
+
+# Байт-код та кеш
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Змінні середовища (паролі, ключі)
 .env
-.idea
+.env.local
+backend/.env
+
+# База даних (якщо використовуєш SQLite локально)
+*.sqlite3
+*.db
+
+# ========================
+# FRONTEND (Vue / Node.js)
+# ========================
+# Всі залежності (вони важать сотні мегабайт, їх не пушимо)
+frontend/node_modules/
+frontend/.idea
+frontend/.vscode
+node_modules/
+
+# Збірка проекту (результат npm run build)
+frontend/dist/
+dist/
+
+# Логи помилок npm/yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Локальні файли налаштувань
+*.local
+.eslintcache
+
+# Тестування
+frontend/coverage/
+cypress/videos/
+cypress/screenshots/
