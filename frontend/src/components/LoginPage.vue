@@ -1,12 +1,33 @@
 <script setup>
-import { ref } from 'vue';
+import { ref,computed } from 'vue';
+
+const isLogin = ref(true);
 
 const email = ref('');
 const password = ref('');
+const confirmPassword = ref('');
 
-const handleLogin = () => {
-  console.log('Login attempt:', { email: email.value, password: password.value });
+const submitButtonText = computed(() => isLogin.value ? 'Увійти' : 'Створити акаунт');
+const toggleLinkText = computed(() => isLogin.value ? 'Немає акаунту? Створіть новий' : 'Вже є акаунт? Увійдіть');
+
+const toggleAuthMode = () => {
+  isLogin.value = !isLogin.value;
+  password.value = '';
+  confirmPassword.value = '';
 };
+const handleSubmit = () => {
+  if (!isLogin.value && password.value !== confirmPassword.value) {
+    alert('Паролі не співпадають!');
+    return;
+  }
+  const payload = {
+    email: email.value,
+    password: password.value,
+    ...(isLogin.value ? {} : { confirmPassword: confirmPassword.value })
+  };
+}
+
+
 </script>
 
 <template>
@@ -14,48 +35,49 @@ const handleLogin = () => {
     <div class="login-card">
 
       <div class="logo-wrapper">
-        <div class="logo-icon">
-          <span>&lt;/&gt;</span>
-        </div>
+        <div class="logo-icon"><span>&lt;/&gt;</span></div>
       </div>
 
       <h1 class="title">Ласкаво просимо до <span class="brand-name">TechStash</span></h1>
       <p class="subtitle">Керуйте документацією для розробників</p>
 
-      <form @submit.prevent="handleLogin" class="login-form">
+      <form @submit.prevent="handleSubmit" class="login-form">
         <div class="form-group">
           <label for="email">Email</label>
-          <input
-              id="email"
-              v-model="email"
-              type="email"
-              placeholder="test@example.com"
-              required
-          />
+          <input id="email" v-model="email" type="email" placeholder="test@example.com" required />
         </div>
 
         <div class="form-group">
           <label for="password">Пароль</label>
+          <input id="password" v-model="password" type="password" placeholder="••••••••" required />
+        </div>
+
+        <div v-if="!isLogin" class="form-group fade-in">
+          <label for="confirmPassword">Підтвердіть пароль</label>
           <input
-              id="password"
-              v-model="password"
+              id="confirmPassword"
+              v-model="confirmPassword"
               type="password"
               placeholder="••••••••"
               required
           />
         </div>
 
-        <button type="submit" class="submit-btn">Увійти</button>
+        <button type="submit" class="submit-btn">
+          {{ submitButtonText }}
+        </button>
       </form>
 
       <div class="card-footer">
-        <a href="#" class="create-account-link">Немає акаунту? Створіть новий</a>
+        <a href="#" @click.prevent="toggleAuthMode" class="create-account-link">
+          {{ toggleLinkText }}
+        </a>
       </div>
 
       <div class="info-box">
         <span class="bulb-icon">💡</span>
         <div class="info-text">
-          <p>Для тесту можете використати будь-які дані:</p>
+          <p>Для тесту:</p>
           <p>Email: <strong>test@example.com</strong></p>
           <p>Пароль: <strong>password123</strong></p>
         </div>
@@ -210,5 +232,13 @@ const handleLogin = () => {
 
 .info-text strong {
   color: #1f2937;
+}
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
