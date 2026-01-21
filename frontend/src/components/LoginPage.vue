@@ -25,61 +25,84 @@ const handleSubmit = () => {
     password: password.value,
     ...(isLogin.value ? {} : { confirmPassword: confirmPassword.value })
   };
+  console.log('Дані форми:', payload);
 }
 
 
 </script>
 
 <template>
-  <div class="login-container">
-    <div class="login-card">
+  <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100 bg-light-gray">
 
-      <div class="logo-wrapper">
-        <div class="logo-icon"><span>&lt;/&gt;</span></div>
+    <div class="card shadow border-0 p-4" style="max-width: 420px; width: 100%;">
+
+      <div class="text-center mb-3">
+        <div class="logo-icon d-inline-flex align-items-center justify-content-center">
+          <span>&lt;/&gt;</span>
+        </div>
       </div>
 
-      <h1 class="title">Ласкаво просимо до <span class="brand-name">TechStash</span></h1>
-      <p class="subtitle">Керуйте документацією для розробників</p>
+      <div class="text-center mb-4">
+        <h1 class="h4 fw-bold text-dark">Ласкаво просимо до <span class="text-primary-custom">TechStash</span></h1>
+        <p class="text-muted small">Керуйте документацією для розробників</p>
+      </div>
 
-      <form @submit.prevent="handleSubmit" class="login-form">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input id="email" v-model="email" type="email" placeholder="test@example.com" required />
-        </div>
-
-        <div class="form-group">
-          <label for="password">Пароль</label>
-          <input id="password" v-model="password" type="password" placeholder="••••••••" required />
-        </div>
-
-        <div v-if="!isLogin" class="form-group fade-in">
-          <label for="confirmPassword">Підтвердіть пароль</label>
+      <form @submit.prevent="handleSubmit">
+        <div class="mb-3">
+          <label for="email" class="form-label fw-semibold text-secondary small">Email</label>
           <input
-              id="confirmPassword"
-              v-model="confirmPassword"
+              type="email"
+              class="form-control"
+              id="email"
+              v-model="email"
+              placeholder="test@example.com"
+              required
+          >
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label fw-semibold text-secondary small">Пароль</label>
+          <input
               type="password"
+              class="form-control"
+              id="password"
+              v-model="password"
               placeholder="••••••••"
               required
-          />
+          >
         </div>
 
-        <button type="submit" class="submit-btn">
+        <div v-if="!isLogin" class="mb-3 fade-in">
+          <label for="confirmPassword" class="form-label fw-semibold text-secondary small">Підтвердіть пароль</label>
+          <input
+              type="password"
+              class="form-control"
+              id="confirmPassword"
+              v-model="confirmPassword"
+              placeholder="••••••••"
+              required
+          >
+        </div>
+
+        <button type="submit" class="btn btn-teal w-100 py-2 fw-bold text-white mt-2">
           {{ submitButtonText }}
         </button>
       </form>
 
-      <div class="card-footer">
-        <a href="#" @click.prevent="toggleAuthMode" class="create-account-link">
+      <div class="text-center mt-3">
+        <a href="#" @click.prevent="toggleAuthMode" class="text-decoration-none text-muted small hover-link">
           {{ toggleLinkText }}
         </a>
       </div>
 
-      <div class="info-box">
-        <span class="bulb-icon">💡</span>
-        <div class="info-text">
-          <p>Для тесту:</p>
-          <p>Email: <strong>test@example.com</strong></p>
-          <p>Пароль: <strong>password123</strong></p>
+      <div class="alert alert-secondary mt-4 d-flex align-items-start small mb-0" role="alert">
+        <span class="me-2 fs-5">💡</span>
+        <div>
+          <p class="mb-1">Для тесту:</p>
+          <div class="d-flex flex-column">
+            <span>Email: <strong>test@example.com</strong></span>
+            <span>Пароль: <strong>password123</strong></span>
+          </div>
         </div>
       </div>
 
@@ -88,157 +111,64 @@ const handleSubmit = () => {
 </template>
 
 <style scoped>
-.login-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* 1. Фон сторінки */
+.bg-light-gray {
   background-color: #f8f9fa;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-.login-card {
-  background: white;
-  padding: 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
+/* 2. Кастомний колір для кнопки (Виправляє "зниклу" кнопку) */
+.btn-teal {
+  background-color: #00b894; /* Зелений колір як на макеті */
+  border: none;
+  transition: background-color 0.2s ease-in-out;
 }
 
-.logo-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1.5rem;
+.btn-teal:hover {
+  background-color: #00a182; /* Темніший відтінок при наведенні */
+  color: white;
 }
 
+/* 3. Логотип */
 .logo-icon {
   width: 50px;
   height: 50px;
   background-color: #0ea5e9;
   color: white;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.2rem;
   font-family: monospace;
-}
-
-.title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
-}
-
-.brand-name {
-  color: #0ea5e9;
-}
-
-.subtitle {
-  color: #6b7280;
-  font-size: 0.95rem;
-  margin-bottom: 2rem;
-}
-
-.login-form {
-  text-align: left;
-}
-
-.form-group {
-  margin-bottom: 1.25rem;
-}
-
-.form-group label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
-}
-
-.form-group input:focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-}
-
-.submit-btn {
-  width: 100%;
-  padding: 0.875rem;
-  background-color: #00b894;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin-top: 0.5rem;
-}
-
-.submit-btn:hover {
-  background-color: #00a182;
-}
-
-.card-footer {
-  margin-top: 1.5rem;
-  font-size: 0.9rem;
-}
-
-.create-account-link {
-  color: #6b7280;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.create-account-link:hover {
-  color: #0ea5e9;
-}
-
-.info-box {
-  margin-top: 2rem;
-  background-color: #eef2f6;
-  padding: 1rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  text-align: left;
-  font-size: 0.8rem;
-  color: #4b5563;
-}
-
-.bulb-icon {
   font-size: 1.2rem;
+  font-weight: bold;
 }
 
-.info-text p {
-  margin: 0.2rem 0;
+/* 4. Колір бренду (TechStash) */
+.text-primary-custom {
+  color: #0ea5e9;
 }
 
-.info-text strong {
-  color: #1f2937;
+/* 5. Перезапис стилів Bootstrap для інпутів (щоб рамка була блакитною, а не синьою) */
+.form-control:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 0.25rem rgba(14, 165, 233, 0.15);
 }
+
+/* 6. Посилання "Створити акаунт" */
+.hover-link:hover {
+  color: #0ea5e9 !important; /* !important потрібен, щоб перебити клас text-muted */
+}
+
+/* 7. Анімація появи поля (fade-in) */
 .fade-in {
   animation: fadeIn 0.3s ease-in-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
