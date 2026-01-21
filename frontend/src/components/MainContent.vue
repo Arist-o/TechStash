@@ -3,8 +3,37 @@
 
     <div class="d-flex align-items-center mb-4">
       <h4 class="mb-0 me-3">All Cards</h4>
-      <small class="text-muted">0 cards found</small>
+      <small class="text-muted">{{ cards.length }} cards found</small>
     </div>
 
   </main>
 </template>
+
+<script setup>
+const cards = [
+  {
+    id: 1,
+    title: "React Documentation",
+    description:
+        "The official React documentation with comprehensive guides, API reference, and best practices for building user interfaces.",
+    tags: ["react", "javascript", "frontend"],
+    link: "https://react.dev"
+  },
+  {
+    id: 2,
+    title: "Docker Guide",
+    description:
+        "Complete Docker documentation including container management, deployment strategies, and Docker Compose tutorials.",
+    tags: ["docker", "devops", "containers"],
+    link: "https://docs.docker.com"
+  },
+  {
+    id: 3,
+    title: "Python Official Docs",
+    description:
+        "Python programming language documentation with tutorials, library reference, and language specifications.",
+    tags: ["python", "backend", "programming"],
+    link: "https://docs.python.org"
+  }
+]
+</script>
