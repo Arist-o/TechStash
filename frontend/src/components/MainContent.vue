@@ -6,6 +6,25 @@
       <small class="text-muted">{{ cards.length }} cards found</small>
     </div>
 
+    <div class="row g-4">
+      <div
+          v-for="card in cards"
+          :key="card.id"
+          class="col-12 col-sm-6 col-lg-4"
+      >
+        <div class="card h-100 shadow-sm rounded-4">
+          <div class="card-body d-flex flex-column">
+
+            <h5 class="card-title">{{ card.title }}</h5>
+            <p class="card-text text-muted small">
+              {{ card.description }}
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 </template>
 
