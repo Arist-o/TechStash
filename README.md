@@ -16,3 +16,9 @@
 | **Database** | MongoDB Atlas (Cloud) |
 | **Frontend** | Vue.js 3, Vite, Vue Router, Axios |
 | **DevOps** | Docker, Docker Compose, GitHub Actions |
+
+
+## Запуск
+
+фронтенд через npm run dev
+бекенд через запуск main.py
