@@ -19,6 +19,16 @@ client = AsyncIOMotorClient(MONGO_DETAILS)
 db = client.techstash_db  # Назва бази даних в Atlas
 users_collection = db.users
 
+
+# Колекція та модель для карток
+cards_collection = db.cards
+
+class CardCreate(BaseModel):
+    title: str
+    description: str
+    link: str
+    tags: list[str] = []
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 app = FastAPI()
 
@@ -73,6 +83,24 @@ async def login(user: UserAuth):
     
     token = create_access_token(data={"sub": user.email})
     return {"access_token": token, "token_type": "bearer"}
+
+@app.get("/api/cards")
+async def get_cards():
+    cards = []
+    cursor = cards_collection.find({})
+    async for document in cursor:
+        document["_id"] = str(document["_id"])
+        cards.append(document)
+    return cards
+
+@app.post("/api/cards")
+async def add_card(card: CardCreate):
+    new_card = card.dict()
+    new_card["created_at"] = datetime.utcnow()
+    result = await cards_collection.insert_one(new_card)
+    new_card["_id"] = str(result.inserted_id)
+    return new_card
+
 
 # --- ЗАПУСК СЕРВЕРА ---
 if __name__ == "__main__":
