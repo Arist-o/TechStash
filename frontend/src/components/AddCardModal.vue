@@ -1,110 +1,101 @@
 <template>
-  <div class="overlay" @click.self="$emit('close')">
-    <div class="modal">
-      <div class="header">
-        <h3>Додати нову картку</h3>
-        <button class="close" @click="$emit('close')">✕</button>
+  <div class="modal-overlay" @click.self="$emit('close')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Нова картка</h2>
+        <button class="close-btn" @click="$emit('close')">✕</button>
       </div>
 
-      <div class="form">
-        <label>Назва *</label>
-        <input placeholder="React Documentation" />
-
-        <label>URL *</label>
-        <input placeholder="https://react.dev" />
-
-        <label>Опис *</label>
-        <textarea placeholder="Офіційна документація React..." />
-
-        <label>Теги</label>
-        <div class="tags-input">
-          <input placeholder="react, javascript, frontend" />
-          <button>Додати</button>
+      <div class="modal-body">
+        <div class="field">
+          <label>Назва</label>
+          <input type="text" placeholder="Назва..." />
+        </div>
+        <div class="field">
+          <label>URL</label>
+          <input type="text" placeholder="URL..." />
+        </div>
+        <div class="field">
+          <label>Опис</label>
+          <textarea placeholder="Опис..."></textarea>
         </div>
       </div>
 
-      <div class="actions">
-        <button class="cancel" @click="$emit('close')">Скасувати</button>
-        <button class="create">Створити картку</button>
+      <div class="modal-actions">
+        <button class="cancel-btn" @click="$emit('close')">Закрити</button>
+        <button class="save-btn">Зберегти</button>
       </div>
     </div>
   </div>
 </template>
 
+<script setup>
+defineEmits(['close']);
+</script>
+
 <style scoped>
-.overlay {
+.modal-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1000; /* Вікно поверх усього */
 }
 
-.modal {
-  width: 520px;
+.modal-content {
   background: white;
+  padding: 30px;
   border-radius: 12px;
-  padding: 24px;
+  width: 450px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
-.header {
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
 
-.close {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-.form {
+.modal-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 15px;
+  text-align: left;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 input, textarea {
   padding: 10px;
-  border-radius: 8px;
   border: 1px solid #d1d5db;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box; /* Щоб написи не плили */
 }
 
-textarea {
-  resize: none;
-  height: 80px;
-}
-
-.tags-input {
-  display: flex;
-  gap: 8px;
-}
-
-.tags-input button {
-  padding: 0 12px;
-}
-
-.actions {
+.modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 25px;
 }
 
-.cancel {
-  padding: 10px 16px;
-}
-
-.create {
-  padding: 10px 16px;
-  background: #0ea5e9;
+.save-btn {
+  background: #2563eb;
   color: white;
   border: none;
+  padding: 10px 20px;
   border-radius: 8px;
+  cursor: pointer;
 }
 </style>
