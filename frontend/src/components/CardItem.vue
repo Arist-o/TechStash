@@ -1,6 +1,16 @@
 <template>
   <div class="col-12 col-sm-6 col-lg-4">
-    <div class="card h-100 shadow-sm rounded-4 border-0">
+    <div class="card h-100 shadow-sm rounded-4 border-0 position-relative">
+      
+      <!-- Кнопка видалення -->
+      <button 
+        @click="deleteCard" 
+        class="btn-delete position-absolute top-0 end-0 m-2"
+        title="Видалити картку"
+      >
+        ✕
+      </button>
+
       <div class="card-body d-flex flex-column p-4">
         
         <h5 class="card-title fw-bold mb-2">{{ card.title }}</h5>
@@ -30,10 +40,16 @@
 export default {
   name: 'CardItem',
   props: {
-    // Приймаємо об'єкт картки від батьківського компонента (MainContent)
     card: {
       type: Object,
       required: true
+    }
+  },
+  methods: {
+    deleteCard() {
+      if (confirm(`Видалити картку "${this.card.title}"?`)) {
+        this.$emit('delete-card', this.card.id);
+      }
     }
   }
 }
@@ -44,6 +60,32 @@ export default {
   transition: transform 0.2s ease-in-out;
 }
 .card:hover {
-  transform: translateY(-5px); /* Ефект підйому при наведенні */
+  transform: translateY(-5px);
+}
+
+.btn-delete {
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ef4444;
+  font-size: 1.2rem;
+  opacity: 0;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.card:hover .btn-delete {
+  opacity: 1;
+}
+
+.btn-delete:hover {
+  background: #ef4444;
+  color: white;
 }
 </style>
