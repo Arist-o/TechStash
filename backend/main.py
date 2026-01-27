@@ -5,7 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt
-from bson import ObjectId  # <-- ДОДАЙ ЦЕЙ ІМПОРТ
+from bson import ObjectId
 
 # --- КОНФІГУРАЦІЯ ПІДКЛЮЧЕННЯ ---
 MONGO_DETAILS = "mongodb+srv://MARETU:Termin887ator@clustermar.blwfjzn.mongodb.net/?retryWrites=true&w=majority&appName=ClusterMar"
@@ -46,6 +46,18 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+# --- HELPER ФУНКЦІЯ ДЛЯ КОНВЕРТАЦІЇ MONGODB ДОКУМЕНТІВ ---
+def card_helper(card) -> dict:
+    """Конвертує MongoDB документ в словник з правильними типами"""
+    return {
+        "id": str(card["_id"]),
+        "title": card.get("title", ""),
+        "description": card.get("description", ""),
+        "link": card.get("link", ""),
+        "tags": card.get("tags", []),
+        "created_at": card.get("created_at")
+    }
+
 # --- МАРШРУТИ ---
 
 @app.get("/")
@@ -81,20 +93,25 @@ async def get_cards():
     cards = []
     cursor = cards_collection.find({})
     async for document in cursor:
-        document["id"] = str(document["_id"])  # <-- ЗМІНЕНО: використовуй "id" замість "_id"
-        del document["_id"]  # Видаляємо _id, бо він не серіалізується
-        cards.append(document)
+        cards.append(card_helper(document))
     return cards
 
 @app.post("/api/cards")
 async def add_card(card: CardCreate):
-    new_card = card.dict()
-    new_card["created_at"] = datetime.utcnow()
+    new_card = {
+        "title": card.title,
+        "description": card.description,
+        "link": card.link,
+        "tags": card.tags,
+        "created_at": datetime.utcnow()
+    }
     result = await cards_collection.insert_one(new_card)
-    new_card["id"] = str(result.inserted_id)  # <-- ЗМІНЕНО: "id" замість "_id"
-    return new_card
+    
+    # Отримуємо створену картку з бази
+    created_card = await cards_collection.find_one({"_id": result.inserted_id})
+    return card_helper(created_card)
 
-# --- НОВИЙ МАРШРУТ: ВИДАЛЕННЯ КАРТКИ ---
+# --- МАРШРУТ: ВИДАЛЕННЯ КАРТКИ ---
 @app.delete("/api/cards/{card_id}")
 async def delete_card(card_id: str):
     try:

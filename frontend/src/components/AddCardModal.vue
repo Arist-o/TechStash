@@ -1,6 +1,13 @@
 <template>
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-content">
+      <!-- Notification -->
+      <transition name="notification">
+        <div v-if="showNotification" :class="['notification', notificationType]">
+          {{ notificationMessage }}
+        </div>
+      </transition>
+
       <div class="modal-header">
         <h2>Нова картка</h2>
         <button class="close-btn" @click="$emit('close')">✕</button>
@@ -30,6 +37,19 @@
             placeholder="Опис..."
           ></textarea>
         </div>
+        <div class="field">
+          <label>Теги</label>
+          <input 
+            v-model="tagsInput" 
+            type="text" 
+            placeholder="Введіть теги через кому (наприклад: react, javascript, frontend)" 
+          />
+          <div v-if="parsedTags.length > 0" class="tags-preview">
+            <span v-for="tag in parsedTags" :key="tag" class="tag-chip">
+              #{{ tag }}
+            </span>
+          </div>
+        </div>
       </div>
 
       <div class="modal-actions">
@@ -41,9 +61,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const emit = defineEmits(['close', 'card-added']);
+
+// URL API - змініть на свій якщо потрібно
+const API_URL = 'http://127.0.0.1:8000/api/cards';
 
 const newCard = ref({
   title: '',
@@ -52,16 +75,47 @@ const newCard = ref({
   tags: []
 });
 
+const tagsInput = ref('');
+
+// Обчислюємо масив тегів з введеного тексту
+const parsedTags = computed(() => {
+  if (!tagsInput.value.trim()) return [];
+  
+  return tagsInput.value
+    .split(',')
+    .map(tag => tag.trim().toLowerCase().replace(/^#/, ''))
+    .filter(tag => tag.length > 0);
+});
+
+const showNotification = ref(false);
+const notificationMessage = ref('');
+const notificationType = ref('success'); // 'success' or 'error'
+
+function displayNotification(message, type = 'success') {
+  notificationMessage.value = message;
+  notificationType.value = type;
+  showNotification.value = true;
+  
+  setTimeout(() => {
+    showNotification.value = false;
+  }, 3000);
+}
+
 async function saveCard() {
   if (!newCard.value.title || !newCard.value.link) {
-    alert('Назва та URL обов\'язкові!');
+    displayNotification('Назва та URL обов\'язкові!', 'error');
     return;
   }
 
   try {
-    console.log('Відправка картки:', newCard.value);
+    console.log('Відправка картки:', {
+      title: newCard.value.title,
+      description: newCard.value.description || '',
+      link: newCard.value.link,
+      tags: parsedTags.value
+    });
     
-    const response = await fetch('http://127.0.0.1:8000/api/cards', {
+    const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -71,31 +125,37 @@ async function saveCard() {
         title: newCard.value.title,
         description: newCard.value.description || '',
         link: newCard.value.link,
-        tags: []
+        tags: parsedTags.value
       })
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       console.error('Помилка від сервера:', errorData);
-      throw new Error('Помилка збереження');
+      
+      // Показуємо детальну помилку якщо є
+      const errorMessage = errorData.detail || errorData.message || 'Помилка збереження';
+      displayNotification(`✗ ${errorMessage}`, 'error');
+      return;
     }
 
     const savedCard = await response.json();
     console.log('Картка збережена успішно:', savedCard);
     
-    // Спочатку викликаємо card-added (щоб оновити список)
-    emit('card-added');
+    // Показуємо повідомлення про успіх
+    displayNotification('✓ Картка успішно збережена!', 'success');
+    
+    // Передаємо створену картку в батьківський компонент
+    emit('card-added', savedCard);
     
     // Потім закриваємо модалку (з невеликою затримкою)
     setTimeout(() => {
       emit('close');
-    }, 100);
+    }, 1500);
     
   } catch (error) {
     console.error('Помилка:', error);
-    // Прибираємо alert, щоб не блокувати виконання
-    console.error('Не вдалося зберегти картку');
+    displayNotification('✗ Не вдалося підключитися до сервера', 'error');
   }
 }
 </script>
@@ -119,7 +179,10 @@ async function saveCard() {
   padding: 30px;
   border-radius: 12px;
   width: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  position: relative;
 }
 
 .modal-header {
@@ -174,6 +237,23 @@ textarea {
   resize: vertical;
 }
 
+.tags-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tag-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -206,5 +286,44 @@ textarea {
 
 .cancel-btn:hover {
   background: #f3f4f6;
+}
+
+/* Notification styles */
+.notification {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1001;
+}
+
+.notification.success {
+  background: #10b981;
+  color: white;
+}
+
+.notification.error {
+  background: #ef4444;
+  color: white;
+}
+
+/* Notification animation */
+.notification-enter-active,
+.notification-leave-active {
+  transition: all 0.3s ease;
+}
+
+.notification-enter-from {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-20px);
+}
+
+.notification-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-20px);
 }
 </style>
