@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,13 +6,15 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt
 from bson import ObjectId
+import os
+from dotenv import load_dotenv
 
-# --- КОНФІГУРАЦІЯ ПІДКЛЮЧЕННЯ ---
-MONGO_DETAILS = "mongodb+srv://MARETU:Termin887ator@clustermar.blwfjzn.mongodb.net/?retryWrites=true&w=majority&appName=ClusterMar"
+load_dotenv()
 
-SECRET_KEY = "tech_stash_super_secret_key_2026"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+MONGO_DETAILS = os.getenv("MONGO_DETAILS")
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 client = AsyncIOMotorClient(MONGO_DETAILS)
 db = client.techstash_db
@@ -25,7 +27,10 @@ class CardCreate(BaseModel):
     link: str
     tags: list[str] = []
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+class UserAuth(BaseModel):
+    email: EmailStr
+    password: str
+
 app = FastAPI()
 
 app.add_middleware(
@@ -36,19 +41,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class UserAuth(BaseModel):
-    email: EmailStr
-    password: str
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# --- JWT ---
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# --- HELPER ФУНКЦІЯ ДЛЯ КОНВЕРТАЦІЇ MONGODB ДОКУМЕНТІВ ---
+# --- HELPER ---
 def card_helper(card) -> dict:
-    """Конвертує MongoDB документ в словник з правильними типами"""
     return {
         "id": str(card["_id"]),
         "title": card.get("title", ""),
@@ -58,41 +61,39 @@ def card_helper(card) -> dict:
         "created_at": card.get("created_at")
     }
 
-# --- МАРШРУТИ ---
-
+# --- ROUTES ---
 @app.get("/")
 async def root():
-    return {"message": "API працює, підключення до Atlas встановлено"}
+    return {"message": "API працює, змінні з .env підвантажені"}
 
 @app.post("/api/register")
 async def register(user: UserAuth):
     existing_user = await users_collection.find_one({"email": user.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Користувач вже існує")
-    
+
     new_user = {
         "email": user.email,
         "password_hash": pwd_context.hash(user.password),
         "created_at": datetime.utcnow()
     }
-    
+
     await users_collection.insert_one(new_user)
-    return {"message": "Реєстрація успішна, дані в Atlas"}
+    return {"message": "Реєстрація успішна"}
 
 @app.post("/api/login")
 async def login(user: UserAuth):
     db_user = await users_collection.find_one({"email": user.email})
     if not db_user or not pwd_context.verify(user.password, db_user["password_hash"]):
         raise HTTPException(status_code=401, detail="Невірний email або пароль")
-    
-    token = create_access_token(data={"sub": user.email})
+
+    token = create_access_token({"sub": user.email})
     return {"access_token": token, "token_type": "bearer"}
 
 @app.get("/api/cards")
 async def get_cards():
     cards = []
-    cursor = cards_collection.find({})
-    async for document in cursor:
+    async for document in cards_collection.find({}):
         cards.append(card_helper(document))
     return cards
 
@@ -105,29 +106,21 @@ async def add_card(card: CardCreate):
         "tags": card.tags,
         "created_at": datetime.utcnow()
     }
+
     result = await cards_collection.insert_one(new_card)
-    
-    # Отримуємо створену картку з бази
     created_card = await cards_collection.find_one({"_id": result.inserted_id})
     return card_helper(created_card)
 
-# --- МАРШРУТ: ВИДАЛЕННЯ КАРТКИ ---
 @app.delete("/api/cards/{card_id}")
 async def delete_card(card_id: str):
-    try:
-        # Перетворюємо string ID на ObjectId MongoDB
-        result = await cards_collection.delete_one({"_id": ObjectId(card_id)})
-        
-        if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Картка не знайдена")
-        
-        return {"message": "Картка успішно видалена", "id": card_id}
-    
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Помилка: {str(e)}")
+    result = await cards_collection.delete_one({"_id": ObjectId(card_id)})
 
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Картка не знайдена")
 
-# --- ЗАПУСК СЕРВЕРА ---
+    return {"message": "Картка видалена", "id": card_id}
+
+# --- ЗАПУСК ---
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
